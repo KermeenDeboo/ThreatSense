@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThreatSense | Admin Console</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = { 
+      darkMode: 'class', 
+      theme: { 
+        extend: { 
+          fontFamily: { sans: ['Space Grotesk'] }, 
+          colors: { 
+            primary: '#6366f1', 
+            lightbg: '#e0f2fe',  
+            darkbg: '#212f65', 
+            navycard: '#2a3b7a' 
+          }
+        } 
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-lightbg dark:bg-darkbg text-slate-900 dark:text-white transition-colors duration-500 overflow-x-hidden">
+
+<div id="canvas-container"></div>
+
+<header></header>
+
+<main class="min-h-screen pb-20">
+  <section class="py-16 px-6 text-center">
+    <h1 class="text-3xl md:text-5xl font-black mb-4 reveal">
+      System Overview & <span class="text-primary italic">Global Telemetry</span>
+    </h1>
+    <p class="text-sm opacity-60 uppercase tracking-widest font-bold">Admin Console // Level 5 Access</p>
+  </section>
+
+  <section class="px-6 max-w-7xl mx-auto mb-16 reveal">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-black uppercase tracking-tighter text-primary">Registered Personnel</h2>
+      <div class="px-3 py-1 bg-primary/20 rounded-lg text-xs font-bold text-primary" id="userCount">Loading...</div>
+    </div>
+    
+    <div class="w-full overflow-x-auto rounded-[2rem] bg-white/10 dark:bg-black/20 border border-white/10 shadow-2xl backdrop-blur-md">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-white/5 uppercase text-[10px] tracking-widest opacity-70">
+          <tr>
+            <th class="px-6 py-4">Username</th>
+            <th class="px-6 py-4">Email</th>
+            <th class="px-6 py-4">Role</th>
+            <th class="px-6 py-4 text-right">Status</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody" class="divide-y divide-white/5">
+          <tr><td colspan="4" class="px-6 py-8 text-center opacity-50 italic">Establishing secure connection...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="px-6 max-w-7xl mx-auto reveal">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-black uppercase tracking-tighter text-primary">Global Scan Audit Log</h2>
+      <div class="px-3 py-1 bg-indigo-500/20 rounded-lg text-xs font-bold text-indigo-400" id="scanCount">Loading...</div>
+    </div>
+    
+    <div class="w-full overflow-x-auto rounded-[2rem] bg-white/10 dark:bg-black/20 border border-white/10 shadow-2xl backdrop-blur-md h-[500px] overflow-y-auto">
+      <table class="w-full text-left text-sm relative">
+        <thead class="bg-darkbg/90 backdrop-blur-sm sticky top-0 uppercase text-[10px] tracking-widest opacity-90 z-10">
+          <tr>
+            <th class="px-6 py-4">Timestamp</th>
+            <th class="px-6 py-4">Operator</th>
+            <th class="px-6 py-4">AI Classification</th>
+            <th class="px-6 py-4 text-right">Confidence</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody" class="divide-y divide-white/5">
+          <tr><td colspan="4" class="px-6 py-8 text-center opacity-50 italic">Querying global telemetry...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer></footer>
+
+<script src="../js/main.js"></script>
+
+<script>
+  // --- ADMIN DATA FETCHING LOGIC ---
+  const ADMIN_API_BASE = "http://127.0.0.1:5000";
+
+  async function loadAdminDashboard() {
+    await fetchUsers();
+    await fetchGlobalHistory();
+  }
+
+  async function fetchUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    const countBadge = document.getElementById('userCount');
+    
+    try {
+      const response = await fetch(`${ADMIN_API_BASE}/admin/users`);
+      if (!response.ok) throw new Error("Failed to fetch users");
+      const users = await response.json();
+
+      countBadge.innerText = `${users.length} Active`;
+      tbody.innerHTML = ''; // Clear loading state
+
+      if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center opacity-50">No users found in database.</td></tr>`;
+        return;
+      }
+
+      users.forEach(user => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-white/5 transition-colors";
+        tr.innerHTML = `
+          <td class="px-6 py-4 font-bold flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs">🛡️</span>
+            ${user.username || 'Unknown'}
+          </td>
+          <td class="px-6 py-4 opacity-70">${user.email || 'N/A'}</td>
+          <td class="px-6 py-4"><span class="px-2 py-1 bg-slate-500/20 rounded text-[10px] uppercase font-bold text-slate-300">Standard</span></td>
+          <td class="px-6 py-4 text-right"><span class="text-green-400 text-xs font-bold uppercase tracking-widest">● Active</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (error) {
+      console.error(error);
+      tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-red-400 font-bold">API Offline: Ensure Flask is running on port 5000.</td></tr>`;
+      countBadge.innerText = "ERR";
+    }
+  }
+
+  async function fetchGlobalHistory() {
+    const tbody = document.getElementById('historyTableBody');
+    const countBadge = document.getElementById('scanCount');
+    
+    try {
+      const response = await fetch(`${ADMIN_API_BASE}/admin/history`);
+      if (!response.ok) throw new Error("Failed to fetch history");
+      const history = await response.json();
+
+      countBadge.innerText = `${history.length} Scans Logged`;
+      tbody.innerHTML = '';
+
+      if (history.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center opacity-50">No scan telemetry recorded yet.</td></tr>`;
+        return;
+      }
+
+      history.forEach(log => {
+        const isThreat = log.prediction && log.prediction.toLowerCase().includes('suspicious');
+        const statusColor = isThreat ? 'text-red-400' : 'text-green-400';
+        const bgStatus = isThreat ? 'bg-red-500/10' : 'bg-transparent';
+        const confidencePct = log.confidence ? (log.confidence * 100).toFixed(1) : '--';
+
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-white/5 transition-colors ${bgStatus}`;
+        tr.innerHTML = `
+          <td class="px-6 py-4 opacity-60 font-mono text-xs">${log.timestamp || 'N/A'}</td>
+          <td class="px-6 py-4 font-bold">${log.username || 'Guest_User'}</td>
+          <td class="px-6 py-4 font-bold ${statusColor} uppercase text-[10px] tracking-widest">${log.prediction || 'Unknown'}</td>
+          <td class="px-6 py-4 text-right font-mono text-primary">${confidencePct}%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (error) {
+      console.error(error);
+      tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-red-400 font-bold">API Offline: Unable to load telemetry.</td></tr>`;
+      countBadge.innerText = "ERR";
+    }
+  }
+
+  // Initialize Data & Observers on Load
+  window.addEventListener('DOMContentLoaded', () => {
+    loadAdminDashboard();
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('active'); });
+    });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  });
+</script>
+
+</body>
+</html>

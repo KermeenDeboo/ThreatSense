@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThreatSense | Tactical Detection</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = { 
+      darkMode: 'class', 
+      theme: { extend: { fontFamily: { sans: ['Space Grotesk'] }, colors: { primary: '#6366f1', lightbg: '#e0f2fe', darkbg: '#212f65', navycard: '#2a3b7a' }}}
+    }
+  </script>
+</head>
+<body class="bg-lightbg dark:bg-darkbg text-slate-900 dark:text-white transition-colors duration-500">
+<div id="canvas-container"></div>
+
+<header class="sticky top-0 z-50 backdrop-blur-md bg-white/30 dark:bg-darkbg/80 border-b border-indigo-200 dark:border-white/10">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center text-slate-900 dark:text-white">
+    <div class="flex items-center gap-3"><div class="w-9 h-9 bg-primary rounded-xl flex items-center justify-center text-white font-bold shadow-lg text-xs">TS</div><span class="font-bold text-xl uppercase tracking-tighter">ThreatSense</span></div>
+    <nav id="navLinks" class="flex gap-6 items-center text-xs font-bold uppercase tracking-widest"></nav>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-4 gap-10">
+  
+  <div class="lg:col-span-3 space-y-8">
+    <section class="reveal p-8 rounded-[3.5rem] bg-white/50 dark:bg-navycard border border-primary/20 shadow-2xl">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-black uppercase tracking-tighter text-primary">Live Forensic Analysis</h2>
+        <div class="flex gap-2">
+          <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+          <p class="text-[10px] font-bold uppercase tracking-widest opacity-60">Engine Ready</p>
+        </div>
+      </div>
+      
+      <form id="detectionForm" class="space-y-6">
+        <div class="bg-black/5 dark:bg-black/30 rounded-[2rem] p-4 border border-white/5">
+           <textarea id="logInput" placeholder='{"cpu": 12.5, "ram": 35.0, "network": 8.2}' 
+           class="w-full h-56 bg-transparent border-none focus:ring-0 font-mono text-xs text-indigo-400 placeholder-indigo-300"></textarea>
+        </div>
+        <div class="flex flex-wrap items-center gap-4">
+          <button type="submit" class="px-12 py-5 bg-primary text-white font-black uppercase text-xs rounded-2xl shadow-xl hover:scale-105 transition-all">Start AI Prediction</button>
+          <p class="text-[10px] opacity-40 font-bold max-w-[200px] leading-tight italic">AI Model will evaluate 142 unique behavioral features.</p>
+        </div>
+      </form>
+    </section>
+
+    <div id="resultCard" class="hidden reveal grid grid-cols-1 md:grid-cols-2 gap-8 p-10 rounded-[3.5rem] bg-white border-2 border-primary shadow-2xl dark:bg-navycard">
+      <div>
+        <h3 class="text-xs font-black uppercase opacity-50 tracking-widest mb-4">Classification Result</h3>
+        <p id="threatType" class="text-4xl font-black uppercase tracking-tighter mb-2">Analyzing...</p>
+        <p id="behavior-signature" class="text-xs opacity-60 italic">AI mapped this request to 'Brute Force' behavioral signatures.</p>
+      </div>
+      <div class="flex flex-col justify-center items-end text-right">
+        <p class="text-xs font-black uppercase opacity-50 tracking-widest mb-2">Probability Score</p>
+        <div id="probBar" class="text-5xl font-black text-primary">0%</div>
+        <div class="w-full max-w-[200px] h-2 bg-slate-100 dark:bg-white/10 rounded-full mt-4 overflow-hidden">
+          <div id="innerBar" class="bg-primary h-full transition-all duration-1000" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="reveal flex flex-col gap-6">
+    <div class="p-8 rounded-[3rem] bg-white/40 dark:bg-black/30 border border-white/10 shadow-2xl h-[650px] flex flex-col relative overflow-hidden">
+      <div class="flex justify-between items-center mb-8">
+        <h4 class="text-xs font-black uppercase tracking-widest text-primary">Recent Scans</h4>
+        <button onclick="downloadCSV()" class="text-[8px] font-black uppercase text-primary border border-primary/30 px-2 py-1 rounded-md hover:bg-primary hover:text-white transition-colors">CSV Export</button>
+      </div>
+      <div id="miniHistory" class="flex-1 overflow-y-auto space-y-4 pr-2 font-mono text-[9px]">
+        </div>
+      <div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-darkbg to-transparent text-center">
+        <p class="text-[8px] opacity-40 uppercase tracking-widest font-bold">Encrypted Session: #22941</p>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer></footer>
+<script src="../js/main.js"></script>
+<script>
+  // --- 1. DOWNLOAD CSV LOGIC ---
+  async function downloadCSV() {
+    const storedUser = JSON.parse(localStorage.getItem('registeredUser'));
+    const currentUsername = (localStorage.getItem('isLoggedIn') === 'true' && storedUser) 
+                            ? storedUser.username 
+                            : null;
+
+    if (!currentUsername) {
+        alert("Please login to download your scan history.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://127.0.0.1:5000/get_user_history/${currentUsername}`);
+        const data = await response.json();
+
+        if (data.length === 0) {
+            alert("No history found for this user.");
+            return;
+        }
+
+        const headers = ["Timestamp", "Prediction", "Confidence", "User"];
+        const csvRows = [headers.join(",")];
+
+        data.forEach(row => {
+            const values = [
+                row.timestamp,
+                row.prediction,
+                `${(row.confidence * 100).toFixed(1)}%`,
+                row.username
+            ];
+            csvRows.push(values.join(","));
+        });
+
+        const csvContent = csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        const fileTimestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        a.setAttribute('href', url);
+        a.setAttribute('download', `ThreatSense_History_${currentUsername}_${fileTimestamp}.csv`);
+        
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error("Download failed:", error);
+        alert("Failed to generate CSV. Ensure the backend is running.");
+    }
+  }
+
+  // --- 2. LIVE DETECTION FORM SUBMISSION ---
+  document.getElementById('detectionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const logInputValue = document.getElementById('logInput').value;
+    const resultCard = document.getElementById('resultCard');
+    const threatTypeEl = document.getElementById('threatType');
+    const probBarEl = document.getElementById('probBar');
+    const innerBarEl = document.getElementById('innerBar');
+    const behaviorSigEl = document.getElementById('behavior-signature');
+    const historyEl = document.getElementById('miniHistory');
+
+    // Validate JSON
+    let parsedData;
+    try {
+      parsedData = JSON.parse(logInputValue || '{}'); 
+    } catch (err) {
+      alert("Invalid input! Please enter valid JSON telemetry data (e.g., {\"cpu\": 15, \"ram\": 30, \"network\": 5}).");
+      return;
+    }
+
+    // Identify Current User from localStorage to send to backend
+    const storedUser = JSON.parse(localStorage.getItem('registeredUser'));
+    const currentUsername = (localStorage.getItem('isLoggedIn') === 'true' && storedUser) 
+                            ? storedUser.username 
+                            : "Guest_User";
+
+    // Set Loading State
+    resultCard.classList.remove('hidden');
+    threatTypeEl.innerText = "ANALYZING...";
+    threatTypeEl.style.color = "#fbbf24"; 
+    probBarEl.innerText = "--%";
+    innerBarEl.style.width = "0%";
+    behaviorSigEl.innerText = "Querying ThreatSense AI engine...";
+
+    // Fetch from backend
+    try {
+      const response = await fetch('http://127.0.0.1:5000/predict_live', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            ...parsedData,
+            username: currentUsername // Send username so backend can save to history
+        })
+      });
+
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      // Update UI dynamically based on real response
+      const confPct = (result.confidence * 100).toFixed(1);
+      probBarEl.innerText = `${confPct}%`;
+      innerBarEl.style.width = `${confPct}%`;
+
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+      const randomID = Math.floor(1000 + Math.random() * 9000);
+      const div = document.createElement('div');
+
+      if (result.is_threat) {
+        threatTypeEl.innerText = "SUSPICIOUS ACTIVITY";
+        threatTypeEl.style.color = "#ef4444"; 
+        behaviorSigEl.innerText = "AI mapped this request to anomalous behavioral signatures.";
+        
+        div.className = "p-4 bg-red-500/10 border-l-4 border-red-500 rounded-r-2xl";
+        div.innerHTML = `<p class="opacity-40">${timeString} | ID: #${randomID}</p><p class="font-bold">FLAGGED: ANOMALY</p><p class="text-red-500">RISK: HIGH (${confPct}%)</p>`;
+      } else {
+        threatTypeEl.innerText = "SYSTEM SAFE";
+        threatTypeEl.style.color = "#22c55e"; 
+        behaviorSigEl.innerText = "No anomalous behavior detected in telemetry.";
+        
+        div.className = "p-4 bg-green-500/10 border-l-4 border-green-500 rounded-r-2xl";
+        div.innerHTML = `<p class="opacity-40">${timeString} | ID: #${randomID}</p><p class="font-bold">STATUS: CLEAN</p><p class="text-green-500">RISK: LOW (${confPct}%)</p>`;
+      }
+
+      historyEl.prepend(div);
+
+    } catch (error) {
+      console.error("Error connecting to backend:", error);
+      threatTypeEl.innerText = "CONNECTION FAILED";
+      threatTypeEl.style.color = "#ef4444";
+      probBarEl.innerText = "ERR";
+      behaviorSigEl.innerText = "Ensure your Flask backend (app.py) is running on port 5000 and the /predict_live route is configured.";
+    }
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('active'); });
+  });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

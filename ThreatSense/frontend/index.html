@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>ThreatSense | Entry</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { primary: '#4f46e5', accent: '#8b5cf6', darkbg: '#0f172a' }}}}
+  </script>
+</head>
+<body class="bg-darkbg text-white font-sans overflow-hidden">
+  <div class="orb w-96 h-96 bg-primary top-1/4 left-1/4"></div>
+  
+  <main class="h-screen flex flex-col items-center justify-center text-center px-6">
+    <div class="w-20 h-20 bg-primary rounded-3xl mb-8 flex items-center justify-center shadow-2xl shadow-primary/50">
+      <span class="text-3xl font-bold">TS</span>
+    </div>
+    <h1 class="text-6xl font-black mb-4 tracking-tighter">THREATSENSE</h1>
+    <p class="text-slate-400 max-w-md mb-10">Autonomous Cyber Threat Prediction & Self-Healing Defense System. [cite: 31]</p>
+    <a href="pages/home.html" class="px-12 py-4 bg-white text-darkbg rounded-full font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
+      Enter Terminal
+    </a>
+  </main>
+
+  <footer></footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThreatSense | Profile Terminal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = { 
+      darkMode: 'class', 
+      theme: { 
+        extend: { 
+          fontFamily: { sans: ['Space Grotesk'] }, 
+          colors: { 
+            primary: '#6366f1', 
+            lightbg: '#e0f2fe',  
+            darkbg: '#212f65', 
+            navycard: '#2a3b7a' 
+          }
+        } 
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-lightbg dark:bg-darkbg text-slate-900 dark:text-white transition-colors duration-500 overflow-x-hidden">
+
+<div id="canvas-container"></div>
+
+<header class="sticky top-0 z-50 backdrop-blur-md bg-white/30 dark:bg-darkbg/80 border-b border-indigo-200 dark:border-white/10">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center text-slate-900 dark:text-white">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-primary rounded-xl flex items-center justify-center text-white font-bold shadow-lg text-xs">TS</div>
+      <span class="font-bold text-xl tracking-tighter uppercase">ThreatSense</span>
+    </div>
+    <nav id="navLinks" class="flex gap-6 items-center text-xs font-bold uppercase tracking-widest"></nav>
+  </div>
+</header>
+
+<main class="min-h-screen flex items-center justify-center px-6 py-20">
+  
+  <div class="w-full max-w-2xl reveal bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-indigo-200 dark:border-white/10 p-8 md:p-12 rounded-[3.5rem] shadow-2xl relative">
+    
+    <div id="saveNotify" class="hidden absolute top-[-20px] left-1/2 -translate-x-1/2 w-full max-w-xs bg-indigo-600 text-white text-center py-3 rounded-2xl shadow-xl z-50 font-bold text-sm">
+      ✅ Credentials Synchronized!
+    </div>
+
+    <div class="text-center mb-10">
+      <div id="profileAvatarDisplay" class="inline-flex w-28 h-28 bg-white/20 dark:bg-primary/20 rounded-full items-center justify-center mb-4 shadow-xl border-4 border-primary/30 text-6xl">
+        🛡️
+      </div>
+      <h2 id="displayUsername" class="text-3xl font-black uppercase tracking-tighter">Identity Profile</h2>
+      <p class="text-[10px] opacity-60 uppercase tracking-[0.2em] font-bold mt-2">Clearance Level: Administrative</p>
+    </div>
+
+    <form id="profileEditForm" class="space-y-6">
+      
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black uppercase tracking-widest opacity-50 ml-4 text-primary">Full Name</label>
+          <input type="text" id="editFullName" placeholder="Loading..." 
+            class="w-full px-5 py-4 bg-white/50 dark:bg-white/5 border border-indigo-100 dark:border-white/10 rounded-2xl focus:outline-none focus:border-primary transition-all">
+        </div>
+        <div class="space-y-2">
+          <label class="text-[10px] font-black uppercase tracking-widest opacity-50 ml-4 text-primary">Email Address</label>
+          <input type="email" id="editEmail" placeholder="Loading..." 
+            class="w-full px-5 py-4 bg-white/50 dark:bg-white/5 border border-indigo-100 dark:border-white/10 rounded-2xl focus:outline-none focus:border-primary transition-all">
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black uppercase tracking-widest opacity-50 ml-4 text-primary">Assigned City</label>
+          <input type="text" id="editCity" placeholder="Loading..." 
+            class="w-full px-5 py-4 bg-white/50 dark:bg-white/5 border border-indigo-100 dark:border-white/10 rounded-2xl focus:outline-none focus:border-primary transition-all">
+        </div>
+        <div class="space-y-2">
+          <label class="text-[10px] font-black uppercase tracking-widest opacity-50 ml-4 text-primary">Gender Identity</label>
+          <select id="editGender" 
+            class="w-full px-5 py-4 bg-white/50 dark:bg-white/5 border border-indigo-100 dark:border-white/10 rounded-2xl focus:outline-none focus:border-primary transition-all appearance-none dark:text-white">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="space-y-3 pt-4">
+        <label class="text-[10px] font-black uppercase tracking-widest opacity-50 ml-4 text-primary text-center block">Update Security Persona</label>
+        <div class="flex justify-center gap-4 py-2">
+          <button type="button" onclick="changeAvatar('👨‍💼')" class="p-3 bg-white/10 rounded-xl hover:bg-primary/20 transition-all text-2xl">👨‍💼</button>
+          <button type="button" onclick="changeAvatar('👩‍💼')" class="p-3 bg-white/10 rounded-xl hover:bg-primary/20 transition-all text-2xl">👩‍💼</button>
+          <button type="button" onclick="changeAvatar('🕵️')" class="p-3 bg-white/10 rounded-xl hover:bg-primary/20 transition-all text-2xl">🕵️</button>
+          <button type="button" onclick="changeAvatar('👨‍💻')" class="p-3 bg-white/10 rounded-xl hover:bg-primary/20 transition-all text-2xl">👨‍💻</button>
+          <button type="button" onclick="changeAvatar('👩‍💻')" class="p-3 bg-white/10 rounded-xl hover:bg-primary/20 transition-all text-2xl">👩‍💻</button>
+        </div>
+      </div>
+
+      <button type="submit" 
+        class="w-full py-5 bg-primary text-white font-black uppercase tracking-widest rounded-2xl shadow-xl hover:scale-[1.01] active:scale-95 transition-all mt-4">
+        Save Profile Changes
+      </button>
+    </form>
+    
+    <div class="mt-8 text-center border-t border-indigo-100 dark:border-white/5 pt-6">
+        <button onclick="logout()" class="text-red-500 text-[10px] font-black uppercase tracking-[0.2em] hover:underline">
+            Terminate Session
+        </button>
+    </div>
+  </div>
+
+</main>
+
+<footer></footer>
+
+<script src="../js/main.js"></script>
+<script>
+  // 1. Data Retrieval Logic
+  let userData = null;
+  
+  async function loadProfile() {
+    const username = localStorage.getItem('username'); // logged-in username
+    if (!username) {
+        alert("No active session found. Redirecting...");
+        window.location.href = 'auth.html';
+        return;
+    }
+
+    try {
+        const res = await fetch(`http://127.0.0.1:5000/profile/${username}`);
+        if (res.status === 200) {
+            userData = await res.json(); // store globally
+
+            document.getElementById('profileAvatarDisplay').innerText = userData.avatar || '🛡️';
+            document.getElementById('displayUsername').innerText = userData.username;
+            document.getElementById('editFullName').value = userData.name || "";
+            document.getElementById('editEmail').value = userData.email || "";
+            document.getElementById('editCity').value = userData.city || "";
+            document.getElementById('editGender').value = userData.gender || "male";
+        } else {
+            alert("Failed to load profile. Please login again.");
+            window.location.href = 'auth.html';
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Server error. Try again later.");
+    }
+}
+
+  // 2. Avatar Update Logic
+  function changeAvatar(emoji) {
+    userData.avatar = emoji;
+    document.getElementById('profileAvatarDisplay').innerText = emoji;
+  }
+
+  // 3. Save Logic
+  document.getElementById('profileEditForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    userData.name = document.getElementById('editFullName').value;
+    userData.email = document.getElementById('editEmail').value;
+    userData.city = document.getElementById('editCity').value;
+    userData.gender = document.getElementById('editGender').value;
+
+document.getElementById('profileEditForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const updatedData = {
+        name: document.getElementById('editFullName').value,
+        email: document.getElementById('editEmail').value,
+        city: document.getElementById('editCity').value,
+        gender: document.getElementById('editGender').value,
+        avatar: userData.avatar
+    };
+
+    try {
+        const res = await fetch(`http://127.0.0.1:5000/profile/${userData.username}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
+        });
+
+        if (res.status === 200) {
+            const notify = document.getElementById('saveNotify');
+            notify.classList.remove('hidden');
+            setTimeout(() => notify.classList.add('hidden'), 2000);
+        } else {
+            const data = await res.json();
+            alert(data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Server error. Try again later.");
+    }
+});    
+    // Show Notification
+    const notify = document.getElementById('saveNotify');
+    notify.classList.remove('hidden');
+    
+    setTimeout(() => {
+      notify.classList.add('hidden');
+      location.reload(); // Refresh to update Nav Bar name
+    }, 2000);
+  });
+
+  // Reveal observer
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('active'); });
+  });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  window.onload = loadProfile;
+</script>
+
+</body>
+</html>
