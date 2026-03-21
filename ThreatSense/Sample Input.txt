@@ -1,0 +1,9 @@
+{
+  "cpu_percent": 98.5,
+  "ram_percent": 92.1,
+  "net_io": 5000.45,
+  "login_attempts": 20,
+  "request_frequency": 100
+}  
+
+High risk input
